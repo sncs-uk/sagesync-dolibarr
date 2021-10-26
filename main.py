@@ -18,8 +18,8 @@ logging.getLogger("requests_oauthlib").setLevel(logging.ERROR)
 
 from sync import sync_products, sync_services, sync_contacts, sync_purchase_invoices, sync_sales_invoices
 
-# sync_products(s_api, d_api, lastrun)
-# sync_services(s_api, d_api, lastrun)
-# sync_contacts(s_api, d_api, lastrun)
-# sync_purchase_invoices(s_api, d_api, lastrun)
+sync_products(s_api, d_api, lastrun)
+sync_services(s_api, d_api, lastrun)
+sync_contacts(s_api, d_api, lastrun)
+sync_purchase_invoices(s_api, d_api, lastrun)
 sync_sales_invoices(s_api, d_api, lastrun)

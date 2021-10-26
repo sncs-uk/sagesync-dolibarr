@@ -6,7 +6,8 @@ def sync_products(s_api, d_api, lastrun):
     sage_payload = {
         "updated_or_created_since": lastrun,
         "attributes": "item_code,displayed_as,description,item_code,sales_prices,cost_price",
-        "page": 1
+        "page": 1,
+        "$itemsPerPage": 500
     }
 
     finished = False

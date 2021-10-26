@@ -9,7 +9,8 @@ def sync_contacts(s_api, d_api, lastrun):
         "updated_or_created_since": lastrun,
         "attributes": "all",
         "nested_attributes": "all",
-        "page": 1
+        "page": 1,
+        "$itemsPerPage": 500
     }
     while True:
         contacts_page = sage_payload["page"]

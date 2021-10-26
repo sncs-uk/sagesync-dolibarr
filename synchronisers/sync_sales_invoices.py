@@ -36,14 +36,17 @@ def sync_sales_invoices(s_api, d_api, lastrun):
             thirdparty = r.json()[0]
 
             payload = {
-                "ref_client": sales_invoice['contact_reference'] or sales_invoice['date'],
+                "ref_client": sales_invoice['reference'] or sales_invoice['date'],
                 "ref_ext": sales_invoice["id"],
                 "label": sales_invoice['displayed_as'],
                 "socid": thirdparty["id"],
                 "socnom": thirdparty["name"],
                 "status": 0,
                 "buy_status": 0,
-                "date": int(round(datetime.strptime(sales_invoice['date'], "%Y-%m-%d").timestamp()))
+                "date": int(round(datetime.strptime(sales_invoice['date'], "%Y-%m-%d").timestamp())),
+                "cond_reglement_id": "2",
+                "cond_reglement_doc": "Due in 30 days",
+                "cond_reglement_code": "30D"
             }
             if found:
                 logging.debug("Found existing dolibarr invoice ({}) - updating".format(existing_sales_invoices[0]['id']))
@@ -119,6 +122,31 @@ def sync_sales_invoices(s_api, d_api, lastrun):
             if sales_invoice["status"]["id"] == "PAID":
                 logging.debug("Marking as paid")
                 d_api.post(doli_url('invoices/{}/settopaid'.format(sales_invoice_id)))
+                req = d_api.get(doli_url('invoices/{}'.format(sales_invoice_id)))
+                doli_invoice = req.json()
+                payload = {
+                    "statut": "2",
+                    "paye": "1",
+                    "paid": "1",
+                    "fk_statut": "2",
+                    "totalpaid": doli_invoice["total_ttc"],
+                    "remaintopay": 0
+                }
+                r = d_api.put(doli_url('invoices/{}'.format(sales_invoice_id)), data=payload)
+            if sales_invoice["status"]["id"] == "VOID":
+                logging.debug("Marking as void")
+                req = d_api.get(doli_url('invoices/{}'.format(sales_invoice_id)))
+                doli_invoice = req.json()
+                payload = {
+                    "statut": "3",
+                    "status": "3",
+                    "fk_statut": "3",
+                    "totalpaid": doli_invoice["total_ttc"],
+                    "remaintopay": 0,
+                    "close_code": "abandon",
+                    "close_note": "VOIDED: {}".format(sales_invoice["void_reason"])
+                }
+                r = d_api.put(doli_url('invoices/{}'.format(sales_invoice_id)), data=payload)
         if sales_invoices_response["$next"] is None:
             break
         else:

@@ -48,10 +48,10 @@ def sync_services(s_api, d_api, lastrun):
 
             if found:
                 logging.debug("Found existing dolibarr service ({}) - updating".format(existing_services[0]['id']))
-                req = d_api.put(doli_url('products/{}'.format(existing_services[0]['id'])), data=payload)
+                req = d_api.put(doli_url('products/{}'.format(existing_services[0]['id'])), json=payload)
             else:
                 logging.debug("Creating new service")
-                req = d_api.post(doli_url('products'), data=payload)
+                req = d_api.post(doli_url('products'), json=payload)
 
         if services_response["$next"] is None:
             finished = True

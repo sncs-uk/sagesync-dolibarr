@@ -57,11 +57,11 @@ def sync_contacts(s_api, d_api, lastrun):
             
             if found:
                 logging.debug("Found existing dolibarr thirdparty ({}) - updating".format(existing_thirdparties[0]['id']))
-                req = d_api.put(doli_url('thirdparties/{}'.format(existing_thirdparties[0]['id'])), data=payload)
+                req = d_api.put(doli_url('thirdparties/{}'.format(existing_thirdparties[0]['id'])), json=payload)
                 thirdparty_id = existing_thirdparties[0]['id']
             else:
                 logging.debug("Creating new thirdparty")
-                req = d_api.post(doli_url('thirdparties'), data=payload)
+                req = d_api.post(doli_url('thirdparties'), json=payload)
                 thirdparty_id = req.json()
 
             logging.debug("Syncing contact people")
@@ -115,10 +115,10 @@ def sync_contacts(s_api, d_api, lastrun):
 
                     if found:
                         logging.debug("Found existing dolibarr contact ({}) - updating".format(existing_contacts[0]['id']))
-                        req = d_api.put(doli_url('contacts/{}'.format(existing_contacts[0]['id'])), data=payload)
+                        req = d_api.put(doli_url('contacts/{}'.format(existing_contacts[0]['id'])), json=payload)
                     else:
                         logging.debug("Creating new contact")
-                        req = d_api.post(doli_url('contacts'), data=payload)
+                        req = d_api.post(doli_url('contacts'), json=payload)
 
                 if people_response["$next"] is None:
                     break

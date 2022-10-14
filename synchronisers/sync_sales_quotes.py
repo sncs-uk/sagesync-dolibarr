@@ -51,7 +51,7 @@ def sync_sales_quotes(s_api, d_api, lastrun):
                 logging.debug("Found existing dolibarr proposal ({}) - updating".format(existing_sales_quotes[0]['id']))
                 payload["fk_statut"] = 0
                 payload["statut"] = 0
-                req = d_api.put(doli_url('proposals/{}'.format(existing_sales_quotes[0]['id'])), data=payload)
+                req = d_api.put(doli_url('proposals/{}'.format(existing_sales_quotes[0]['id'])), json=payload)
                 sales_quote_id = req.json()["id"]
                 req = d_api.get(doli_url('proposals/{}/lines'.format(sales_quote_id)))
                 lines_local = req.json()
@@ -60,11 +60,11 @@ def sync_sales_quotes(s_api, d_api, lastrun):
                     d_api.delete(doli_url('proposals/{}/lines/{}'.format(sales_quote_id, line['id'])))
             else:
                 logging.debug("Creating new proposal")
-                req = d_api.post(doli_url('proposals'), data=payload)
+                req = d_api.post(doli_url('proposals'), json=payload)
                 if req.status_code == 500:
                     # logging.warning("Invalid response: {} {}".format(req.json(), payload))
                     payload['ref_client'] = "{}_{}".format(payload['ref_client'], sales_quote['date'])
-                    req = d_api.post(doli_url('invoices'), data=payload)
+                    req = d_api.post(doli_url('invoices'), json=payload)
                     if req.status_code == 500:
                         logging.warning("Double failure for {}".format(payload))
                         continue
@@ -80,14 +80,16 @@ def sync_sales_quotes(s_api, d_api, lastrun):
                 if line["product"] is None and line["service"] is None:
                     # Not an existing product/service
                     logging.debug("No product/service")
-                    payload = {
-                        "desc": line["description"],
-                        "subprice": line["unit_price"],
-                        "pu_ht": line["unit_price"],
-                        "qty": line["quantity"],
-                        "tva_tx": vat_rate,
-                        "product_type": "0",
-                        "ref_ext": line["id"]
+                    payload = { "request_data": [
+                        {
+                            "desc": line["description"],
+                            "subprice": line["unit_price"],
+                            "pu_ht": line["unit_price"],
+                            "qty": line["quantity"],
+                            "tva_tx": vat_rate,
+                            "product_type": "0",
+                            "ref_ext": line["id"]
+                        }]
                     }
                 else:
                     if line["product"]:
@@ -104,24 +106,30 @@ def sync_sales_quotes(s_api, d_api, lastrun):
                         continue
                     product = products[0]
                     payload = {
-                        "desc": line["description"],
-                        "subprice": line["unit_price"],
-                        "pu_ht": line["unit_price"],
-                        "qty": line["quantity"],
-                        "tva_tx": vat_rate,
-                        "product_type": product["type"],
-                        "fk_product": product["id"],
-                        "ref_ext": line["id"]
+                        "request_data":
+                            [
+                                {
+                                    "desc": line["description"],
+                                    "subprice": line["unit_price"],
+                                    "pu_ht": line["unit_price"],
+                                    "qty": line["quantity"],
+                                    "tva_tx": vat_rate,
+                                    "product_type": product["type"],
+                                    "fk_product": product["id"],
+                                    "ref_ext": line["id"]
+                                }
+                            ]
                     }
                 
                 r = d_api.get(doli_url('proposals/{}/lines'.format(sales_quote_id)), params={ "sqlfilters": "(t.ref_ext:=:'{}')".format(line["id"]) })
                 existinglines = r.json()
                 # if len(existinglines) == 1:
                 #     logging.debug("Updaing proposal line: {}".format(payload))
-                #     d_api.put(doli_url('proposals/{}/lines/{}'.format(sales_quote_id, existinglines[0]["id"])), data=payload)
+                #     d_api.put(doli_url('proposals/{}/lines/{}'.format(sales_quote_id, existinglines[0]["id"])), json=payload)
                 # else:
                 logging.debug("Creating new proposal line: {}".format(payload))
-                req = d_api.post(doli_url('proposals/{}/lines'.format(sales_quote_id)), data=payload)
+                req = d_api.post(doli_url('proposals/{}/lines'.format(sales_quote_id)), json=payload)
+                logging.debug(req.content)
 
             d_api.post(doli_url('proposals/{}/validate'.format(sales_quote_id)))
 
@@ -130,7 +138,7 @@ def sync_sales_quotes(s_api, d_api, lastrun):
                 payload = {
                     "status": "2"
                 }
-                r = d_api.post(doli_url('proposals/{}/close'.format(sales_quote_id)), data=payload)
+                r = d_api.post(doli_url('proposals/{}/close'.format(sales_quote_id)), json=payload)
 
                 if sales_quote["invoice"]:
                     r = d_api.post(doli_url('proposals/{}/setinvoiced'.format(sales_quote_id)))
@@ -139,7 +147,7 @@ def sync_sales_quotes(s_api, d_api, lastrun):
                 payload = {
                     "status": "3"
                 }
-                r = d_api.post(doli_url('proposals/{}/close'.format(sales_quote_id)), data=payload)
+                r = d_api.post(doli_url('proposals/{}/close'.format(sales_quote_id)), json=payload)
         if sales_quotes_response["$next"] is None:
             break
         else:

@@ -47,10 +47,11 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
                 "date": int(round(datetime.strptime(purchase_invoice['date'], "%Y-%m-%d").timestamp()))
             }
             if found:
+                continue
                 logging.debug("Found existing dolibarr invoice ({}) - updating".format(existing_supplier_invoices[0]['id']))
                 payload["fk_statut"] = 0
                 payload["statut"] = 0
-                req = d_api.put(doli_url('supplierinvoices/{}'.format(existing_supplier_invoices[0]['id'])), data=payload)
+                req = d_api.put(doli_url('supplierinvoices/{}'.format(existing_supplier_invoices[0]['id'])), json=payload)
                 supplier_invoice_id = req.json()["id"]
                 req = d_api.get(doli_url('supplierinvoices/{}/lines'.format(supplier_invoice_id)))
                 lines = req.json()
@@ -59,11 +60,11 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
                     d_api.delete(doli_url('supplierinvoices/{}/lines/{}'.format(supplier_invoice_id, line['id'])))
             else:
                 logging.debug("Creating new invoice")
-                req = d_api.post(doli_url('supplierinvoices'), data=payload)
+                req = d_api.post(doli_url('supplierinvoices'), json=payload)
                 if req.status_code == 500:
                     # logging.warning("Invalid response: {} {}".format(req.json(), payload))
                     payload['ref_supplier'] = "{}_{}".format(payload['ref_supplier'], purchase_invoice['date'])
-                    req = d_api.post(doli_url('supplierinvoices'), data=payload)
+                    req = d_api.post(doli_url('supplierinvoices'), json=payload)
                     if req.status_code == 500:
                         logging.warning("Double failure for {}".format(payload))
                         continue
@@ -91,6 +92,10 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
                         product_id = line["product"]["id"]
                     else:
                         product_id = line["service"]["id"]
+                    if line["tax_amount"] != '0.0':
+                        vat_rate = line["tax_breakdown"][0]["percentage"]
+                    else:
+                        vat_rate = 0
                     payload = {
                         "sqlfilters": "(t.ref_ext:=:'{}')".format(product_id)
                     }
@@ -110,7 +115,7 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
                         "fk_product": product["id"]
                     }
                 logging.debug("Creating new invoice line: {}".format(payload))
-                req = d_api.post(doli_url('supplierinvoices/{}/lines'.format(supplier_invoice_id)), data=payload)
+                req = d_api.post(doli_url('supplierinvoices/{}/lines'.format(supplier_invoice_id)), json=payload)
 
             d_api.post(doli_url('supplierinvoices/{}/validate'.format(supplier_invoice_id)))
 
@@ -122,7 +127,7 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
                     "paid": "1",
                     "fk_statut": "2"
                 }
-                r = d_api.put(doli_url('supplierinvoices/{}'.format(supplier_invoice_id)), data=payload)
+                r = d_api.put(doli_url('supplierinvoices/{}'.format(supplier_invoice_id)), json=payload)
         if purchase_invoices_response["$next"] is None:
             break
         else:

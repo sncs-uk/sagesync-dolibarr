@@ -52,7 +52,7 @@ def sync_sales_invoices(s_api, d_api, lastrun):
                 logging.debug("Found existing dolibarr invoice ({}) - updating".format(existing_sales_invoices[0]['id']))
                 payload["fk_statut"] = 0
                 payload["statut"] = 0
-                req = d_api.put(doli_url('invoices/{}'.format(existing_sales_invoices[0]['id'])), data=payload)
+                req = d_api.put(doli_url('invoices/{}'.format(existing_sales_invoices[0]['id'])), json=payload)
                 sales_invoice_id = req.json()["id"]
                 req = d_api.get(doli_url('invoices/{}/lines'.format(sales_invoice_id)))
                 lines = req.json()
@@ -61,11 +61,11 @@ def sync_sales_invoices(s_api, d_api, lastrun):
                     d_api.delete(doli_url('invoices/{}/lines/{}'.format(sales_invoice_id, line['id'])))
             else:
                 logging.debug("Creating new invoice")
-                req = d_api.post(doli_url('invoices'), data=payload)
+                req = d_api.post(doli_url('invoices'), json=payload)
                 if req.status_code == 500:
                     # logging.warning("Invalid response: {} {}".format(req.json(), payload))
                     payload['ref_client'] = "{}_{}".format(payload['ref_client'], sales_invoice['date'])
-                    req = d_api.post(doli_url('invoices'), data=payload)
+                    req = d_api.post(doli_url('invoices'), json=payload)
                     if req.status_code == 500:
                         logging.warning("Double failure for {}".format(payload))
                         continue
@@ -114,7 +114,7 @@ def sync_sales_invoices(s_api, d_api, lastrun):
                         "ref_ext": line["id"]
                     }
                 logging.debug("Creating new invoice line: {}".format(payload))
-                req = d_api.post(doli_url('invoices/{}/lines'.format(sales_invoice_id)), data=payload)
+                req = d_api.post(doli_url('invoices/{}/lines'.format(sales_invoice_id)), json=payload)
 
             d_api.post(doli_url('invoices/{}/validate'.format(sales_invoice_id)))
 
@@ -132,7 +132,7 @@ def sync_sales_invoices(s_api, d_api, lastrun):
                     "totalpaid": doli_invoice["total_ttc"],
                     "remaintopay": 0
                 }
-                r = d_api.put(doli_url('invoices/{}'.format(sales_invoice_id)), data=payload)
+                r = d_api.put(doli_url('invoices/{}'.format(sales_invoice_id)), json=payload)
             if sales_invoice["status"]["id"] == "VOID":
                 logging.debug("Marking as void")
                 req = d_api.get(doli_url('invoices/{}'.format(sales_invoice_id)))
@@ -146,7 +146,7 @@ def sync_sales_invoices(s_api, d_api, lastrun):
                     "close_code": "abandon",
                     "close_note": "VOIDED: {}".format(sales_invoice["void_reason"])
                 }
-                r = d_api.put(doli_url('invoices/{}'.format(sales_invoice_id)), data=payload)
+                r = d_api.put(doli_url('invoices/{}'.format(sales_invoice_id)), json=payload)
         if sales_invoices_response["$next"] is None:
             break
         else:

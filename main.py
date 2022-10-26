@@ -12,8 +12,8 @@ logging.getLogger("requests_oauthlib").setLevel(logging.ERROR)
 
 load_dotenv()
 
-s_api = SageApi(getenv('client_id'), getenv('client_secret'), getenv('redirect_uri'))
-d_api = DolibarrApi(getenv('dolibarr_url'), getenv('dolibarr_api_key'))
+s_api = SageApi(getenv('CLIENT_ID'), getenv('CLIENT_SECRET'), getenv('REDIRECT_URI'))
+d_api = DolibarrApi(getenv('DOLIBARR_URL'), getenv('DOLIBARR_API_KEY'))
 
 with open("lastrun.txt", "r") as fh:
     lastrun = fh.readline()

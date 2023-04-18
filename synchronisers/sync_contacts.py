@@ -64,6 +64,10 @@ def sync_contacts(s_api, d_api, lastrun):
                 req = d_api.post(doli_url('thirdparties'), json=payload)
                 thirdparty_id = req.json()
 
+            if not req.status_code == 200:
+                logging.error("Unexpected response from server whilst creating thirdparty, got {}".format(req.status_code))
+                continue
+
             logging.debug("Syncing contact people")
             sage_payload = {
                 "attributes": "all",

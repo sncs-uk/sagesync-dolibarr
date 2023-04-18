@@ -1,10 +1,10 @@
 from os import getenv
 
 def sage_url(endpoint):
-    return "{}/{}".format(getenv('sage_api_endpoint'), endpoint)
+    return "{}/{}".format(getenv('SAGE_API_ENDPOINT'), endpoint)
 
 def doli_url(endpoint):
-    return "{}/{}".format(getenv('dolibarr_api_endpoint'), endpoint)
+    return "{}/{}".format(getenv('DOLIBARR_API_ENDPOINT'), endpoint)
 
 def format_vat_number(number):
     if number is None:

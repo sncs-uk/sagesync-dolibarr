@@ -1,4 +1,4 @@
 .env
-lastrun.txt
-token.pickle
+data/lastrun.txt
+data/token.pickle
 .env.example

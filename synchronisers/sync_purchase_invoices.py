@@ -47,7 +47,6 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
                 "date": int(round(datetime.strptime(purchase_invoice['date'], "%Y-%m-%d").timestamp()))
             }
             if found:
-                continue
                 logging.debug("Found existing dolibarr invoice ({}) - updating".format(existing_supplier_invoices[0]['id']))
                 payload["fk_statut"] = 0
                 payload["statut"] = 0
@@ -133,4 +132,4 @@ def sync_purchase_invoices(s_api, d_api, lastrun):
         else:
             sage_payload["page"] += 1
 
-    logging.info("Finished importing products")
+    logging.info("Finished importing purchase invoices")

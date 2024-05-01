@@ -142,6 +142,15 @@ def sync_sales_quotes(s_api, d_api, lastrun):
 
                 if sales_quote["invoice"]:
                     r = d_api.post(doli_url('proposals/{}/setinvoiced'.format(sales_quote_id)))
+            if sales_quote["status"]["id"] == "ACCEPTED_BY_CUSTOMER":
+                logging.info("Setting SQ as accepted")
+                payload = {
+                    "status": "2"
+                }
+                r = d_api.post(doli_url('proposals/{}/close'.format(sales_quote_id)), json=payload)
+
+                if sales_quote["invoice"]:
+                    r = d_api.post(doli_url('proposals/{}/setinvoiced'.format(sales_quote_id)))
             if sales_quote["status"]["id"] == "DECLINED":
                 logging.info("Setting SQ as declined")
                 payload = {

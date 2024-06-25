@@ -10,6 +10,8 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("requests_oauthlib").setLevel(logging.ERROR)
 
+lastrun = datetime.datetime.now().isoformat()[:-7]
+
 load_dotenv()
 
 s_api = SageApi(getenv('CLIENT_ID'), getenv('CLIENT_SECRET'), getenv('REDIRECT_URI'), token_file=getenv('TOKEN_FILE'))
@@ -27,6 +29,5 @@ sync_purchase_invoices(s_api, d_api, lastrun)
 sync_sales_invoices(s_api, d_api, lastrun)
 sync_sales_quotes(s_api, d_api, lastrun)
 
-lastrun = datetime.datetime.now().isoformat()[:-7]
 with open(getenv('LASTRUN_FILE'), "w") as fh:
     lastrun = fh.write(lastrun)

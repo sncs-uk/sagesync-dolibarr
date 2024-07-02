@@ -30,4 +30,5 @@ sync_sales_invoices(s_api, d_api, lastrun)
 sync_sales_quotes(s_api, d_api, lastrun)
 
 with open(getenv('LASTRUN_FILE'), "w") as fh:
-    lastrun = fh.write(lastrun)
+    logging.debug("Writing back lastrun as {}".format(lastrun))
+    fh.write(lastrun)

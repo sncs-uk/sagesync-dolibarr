@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("requests_oauthlib").setLevel(logging.ERROR)
 
-lastrun = datetime.datetime.now().isoformat()[:-7]
+thisrun = datetime.datetime.now().isoformat()[:-7]
 
 load_dotenv()
 
@@ -30,5 +30,5 @@ sync_sales_invoices(s_api, d_api, lastrun)
 sync_sales_quotes(s_api, d_api, lastrun)
 
 with open(getenv('LASTRUN_FILE'), "w") as fh:
-    logging.debug("Writing back lastrun as {}".format(lastrun))
-    fh.write(lastrun)
+    logging.debug("Writing back lastrun as {}".format(thisrun))
+    fh.write(thisrun)
